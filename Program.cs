@@ -7,18 +7,20 @@ List<Msg> mensagens = new List<Msg>();
 
 app.MapPost("/mandarMensagem", (Msg mensagem) =>
 {
-    Console.WriteLine(mensagem.chave);
-    Console.WriteLine(listaUsuario.Any(u => u.chave == mensagem.chave));
-    if (listaUsuario.Any(u => u.chave == mensagem.chave))
+    var usuario = listaUsuario.FirstOrDefault(u => u.chave == mensagem.chave);
+
+    if (usuario == null)
+        return Results.Unauthorized();
+
+    mensagens.Add(new Msg
     {
-        mensagens.Add(mensagem);
-        return Results.Ok();
-    }
-    else
-    {
-        return Results.BadRequest("Erro");
-    }
+        usuario = usuario.nome,
+        valor = mensagem.valor
+    });
+
+    return Results.Ok();
 });
+
 
 app.MapPost("/listarMensagens", (Msg mensagem) =>
 {
@@ -51,7 +53,7 @@ app.MapGet("/", () => "API rodando");
 app.MapPost("/usuarios", (string valor) =>
 {
     Console.WriteLine(valor);
-    if (valor == "1234")
+    if (valor == "aaa123!")
     {
         Pessoa[] a = listaUsuario.ToArray();
         return Results.Ok(a);
