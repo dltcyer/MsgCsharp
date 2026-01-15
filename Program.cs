@@ -8,7 +8,6 @@ List<Msg> mensagens = new List<Msg>();
 app.MapPost("/mandarMensagem", (Msg mensagem) =>
 {
     var usuario = listaUsuario.FirstOrDefault(u => u.chave == mensagem.chave);
-
     if (usuario == null)
         return Results.Unauthorized();
 
