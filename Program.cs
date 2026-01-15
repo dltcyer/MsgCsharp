@@ -20,10 +20,18 @@ app.MapPost("/mandarMensagem", (Msg mensagem) =>
     }
 });
 
-app.MapGet("/listarMensagens", () =>
+app.MapPost("/listarMensagens", (Msg mensagem) =>
 {
     Msg[] lista = mensagens.ToArray();
-    return Results.Ok(lista);
+    if (listaUsuario.Any(u => u.chave == mensagem.chave))
+    {
+        mensagens.Add(mensagem);
+        return Results.Ok(lista);
+    }
+    else
+    {
+        return Results.BadRequest("Erro");
+    }
 });
 
 app.MapPost("/enviarDados", (Pessoa pessoa) =>
@@ -40,11 +48,17 @@ void criarUsuario(Pessoa pessoa)
 
 app.MapGet("/", () => "API rodando");
 
-app.MapGet("/usuarios", () =>
+app.MapPost("/usuarios", (string valor) =>
 {
-    foreach (Pessoa n in listaUsuario)
+    Console.WriteLine(valor);
+    if (valor == "1234")
     {
-        Console.WriteLine(n.nome);
+        Pessoa[] a = listaUsuario.ToArray();
+        return Results.Ok(a);
+    }
+    else
+    {
+        return Results.BadRequest();
     }
 });
 app.Run();

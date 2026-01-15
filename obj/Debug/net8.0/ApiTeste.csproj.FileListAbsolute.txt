@@ -31,3 +31,4 @@
 /home/user/Modelos/ApiTeste/obj/Debug/net8.0/ApiTeste.pdb
 /home/user/Modelos/ApiTeste/obj/Debug/net8.0/ApiTeste.genruntimeconfig.cache
 /home/user/Modelos/ApiTeste/obj/Debug/net8.0/ref/ApiTeste.dll
+/home/user/Modelos/ApiTeste/obj/Debug/net8.0/ApiTeste.sourcelink.json
