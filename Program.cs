@@ -1,5 +1,6 @@
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
+app.UseHttpsRedirection();
 
 //criar uma validação de usuario por senha
 List<Pessoa> listaUsuario = new List<Pessoa>();
@@ -7,6 +8,12 @@ List<Msg> mensagens = new List<Msg>();
 
 app.MapPost("/mandarMensagem", (Msg mensagem) =>
 {
+    int valor = mensagens.Count;
+
+    if (valor >= 20)
+    {
+        mensagens.Clear();
+    }
     var usuario = listaUsuario.FirstOrDefault(u => u.chave == mensagem.chave);
     if (usuario == null)
         return Results.Unauthorized();
