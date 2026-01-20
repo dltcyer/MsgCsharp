@@ -15,11 +15,13 @@ app.MapPost("/mandarMensagem", (Msg mensagem) =>
         mensagens.Clear();
     }
     var usuario = listaUsuario.FirstOrDefault(u => u.chave == mensagem.chave);
+    Console.WriteLine(usuario.chave);
     if (usuario == null)
         return Results.Unauthorized();
 
     mensagens.Add(new Msg
     {
+        chave = usuario.chave,
         usuario = usuario.nome,
         valor = mensagem.valor
     });
@@ -31,6 +33,7 @@ app.MapPost("/mandarMensagem", (Msg mensagem) =>
 app.MapPost("/listarMensagens", (Msg mensagem) =>
 {
     Msg[] lista = mensagens.ToArray();
+    bool valor = listaUsuario.Any(u => u.chave == mensagem.chave);
     if (listaUsuario.Any(u => u.chave == mensagem.chave))
     {
         mensagens.Add(mensagem);
@@ -50,7 +53,7 @@ app.MapPost("/enviarDados", (Pessoa pessoa) =>
 
 void criarUsuario(Pessoa pessoa)
 {
-    Console.WriteLine($"{pessoa.nome} - {pessoa.descricao}");
+    Console.WriteLine($"{pessoa.chave} - {pessoa.nome} - {pessoa.descricao}");
     listaUsuario.Add(new Pessoa { chave = pessoa.chave, nome = pessoa.nome, descricao = pessoa.descricao });
 }
 
