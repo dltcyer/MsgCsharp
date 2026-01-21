@@ -32,10 +32,19 @@ app.MapPost("/mandarMensagem", (Msg mensagem) =>
 
 app.MapPost("/listarMensagens", (Msg mensagem) =>
 {
-    Msg[] lista = mensagens.ToArray();
+
     bool valor = listaUsuario.Any(u => u.chave == mensagem.chave);
     if (listaUsuario.Any(u => u.chave == mensagem.chave))
+
     {
+        List<Msg> lista = new List<Msg>();
+        for (int i = 0; i < mensagens.Count; i++)
+            lista.Add(new Msg
+            {
+                usuario = mensagens[i].usuario,
+                valor = mensagens[i].valor
+            });
+
         mensagens.Add(mensagem);
         return Results.Ok(lista);
     }
