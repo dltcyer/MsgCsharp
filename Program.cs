@@ -2,8 +2,6 @@ var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 app.UseHttpsRedirection();
 
-//criar uma validação de usuario por senha
-List<Pessoa> listaUsuario = new List<Pessoa>();
 List<Msg> mensagens = new List<Msg>();
 
 app.MapPost("/mandarMensagem", (Msg mensagem) =>
@@ -14,15 +12,13 @@ app.MapPost("/mandarMensagem", (Msg mensagem) =>
     {
         mensagens.Clear();
     }
-    var usuario = listaUsuario.FirstOrDefault(u => u.chave == mensagem.chave);
-    Console.WriteLine(usuario.chave);
-    if (usuario == null)
+    if (!UserService.UsuarioExiste(mensagem.chave))
         return Results.Unauthorized();
 
     mensagens.Add(new Msg
     {
-        chave = usuario.chave,
-        usuario = usuario.nome,
+        chave = mensagem.chave,
+        usuario = mensagem.usuario,
         valor = mensagem.valor
     });
 
@@ -32,39 +28,63 @@ app.MapPost("/mandarMensagem", (Msg mensagem) =>
 
 app.MapPost("/listarMensagens", (Msg mensagem) =>
 {
+    using var conn = Database.GetConnection();
+    conn.Open();
 
-    bool valor = listaUsuario.Any(u => u.chave == mensagem.chave);
-    if (listaUsuario.Any(u => u.chave == mensagem.chave))
+    var cmd = conn.CreateCommand();
+    cmd.CommandText = @"
+        SELECT 1
+        FROM users
+        WHERE chave = $chave
+        LIMIT 1;
+    ";
 
+    cmd.Parameters.AddWithValue("$chave", mensagem.chave);
+
+    var existeUsuario = cmd.ExecuteScalar();
+
+    if (existeUsuario == null)
+        return Results.Unauthorized();
+
+    mensagens.Add(mensagem);
+
+    var lista = mensagens.Select(m => new Msg
     {
-        List<Msg> lista = new List<Msg>();
-        for (int i = 0; i < mensagens.Count; i++)
-            lista.Add(new Msg
-            {
-                usuario = mensagens[i].usuario,
-                valor = mensagens[i].valor
-            });
+        usuario = m.usuario,
+        valor = m.valor
+    }).ToList();
 
-        mensagens.Add(mensagem);
-        return Results.Ok(lista);
-    }
-    else
-    {
-        return Results.BadRequest("Erro");
-    }
+    return Results.Ok(lista);
 });
+
 
 app.MapPost("/enviarDados", (Pessoa pessoa) =>
 {
-    criarUsuario(pessoa);
-    return Results.Ok(pessoa);
-});
+    try
+    {
+        using var conn = Database.GetConnection();
+        conn.Open();
 
-void criarUsuario(Pessoa pessoa)
-{
-    Console.WriteLine($"{pessoa.chave} - {pessoa.nome} - {pessoa.descricao}");
-    listaUsuario.Add(new Pessoa { chave = pessoa.chave, nome = pessoa.nome, descricao = pessoa.descricao });
-}
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+           INSERT INTO users (chave, nome, descricao, password)
+           VALUES ($chave, $nome, $descricao, $password);
+";
+
+        cmd.Parameters.AddWithValue("$chave", pessoa.chave);
+        cmd.Parameters.AddWithValue("$nome", pessoa.nome);
+        cmd.Parameters.AddWithValue("$descricao", pessoa.descricao);
+        cmd.Parameters.AddWithValue("$password", pessoa.password);
+
+        cmd.ExecuteNonQuery();
+
+        return Results.Ok("Criado");
+    }
+    catch
+    {
+        return Results.BadRequest("Erro em criar");
+    }
+});
 
 app.MapGet("/", () => "API rodando");
 
@@ -73,8 +93,9 @@ app.MapPost("/usuarios", (string valor) =>
     Console.WriteLine(valor);
     if (valor == "aaa123!")
     {
-        Pessoa[] a = listaUsuario.ToArray();
-        return Results.Ok(a);
+        var usuarios = UserService.ListarUsuarios();
+        return Results.Ok(usuarios);
+
     }
     else
     {
